@@ -27,7 +27,7 @@ node {
         checkout scm
         def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()
 
-        docker.build("low-emedia/hal-health-check-v1:latest", "-f cli/Dockerfile cli/.")
+        docker.build("low-emedia/hal-health-check-v1:latest", "-f app/Dockerfile app/.")
         docker.withRegistry('https://540688370389.dkr.ecr.eu-west-1.amazonaws.com', 'ecr:eu-west-1:aws-lowemedia') {
             docker.image("low-emedia/hal-health-check-v1").push(tag)
         }
@@ -44,7 +44,7 @@ node {
         withAWS(region:"eu-west-1", credentials: "aws-lowemedia"){
             s3Upload(file: "app.zip", bucket:"low-emedia-apps", path:"hal-health-check-v1/${tag}/")
         }
-        
+
         sh "docker system prune -f"
     }
 }
