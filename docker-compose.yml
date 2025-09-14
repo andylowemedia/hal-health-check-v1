@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      dockerfile: "Dockerfile"
+      context: "app/"
+      target: "development"
+    volumes:
+      - "./app:/app"
+  rabbitmq:
+    image: "rabbitmq:4.1.4-management-alpine"
+    ports:
+      - "1400:5672"
+      - "1401:15672"
+    volumes:
+      - "./docker/rabbitmq/data/:/var/lib/rabbitmq/"
+      - "./docker/rabbitmq/log/:/var/log/rabbitmq"
+  test-site:
+    image: "nginx:latest"
