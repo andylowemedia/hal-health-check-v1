@@ -10,6 +10,10 @@ repositories {
 }
 
 dependencies {
+    testImplementation("io.cucumber:cucumber-java:7.15.0")
+    testImplementation("io.cucumber:cucumber-java8:7.15.0")
+    testImplementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+
     // http4k
     implementation(platform("org.http4k:http4k-bom:6.17.0.0"))
     implementation("org.http4k:http4k-core")
@@ -33,6 +37,12 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(libs.junit.jupiter.engine)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // junit 5
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.0")
+
+    testImplementation("org.junit.platform:junit-platform-suite-api:1.10.0")
 }
 
 java {
@@ -47,4 +57,11 @@ application {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true  // show println/System.out/System.err
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+
+    }
+    systemProperty("org.gradle.test.worker.capture.output", "true")
 }

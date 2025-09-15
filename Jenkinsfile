@@ -1,28 +1,28 @@
 #!groovy
 node {
-//     stage ('Building Environment') {
-//         try {
-//             checkout scm
-//             sh "sed -i \"s/#{TAG_NAME}#/${env.TAG_NAME}/\" docker-compose.jenkins.yml"
-//             sh "sed -i \"s/#{BUILD_NAME}#/${currentBuild.number}/\" docker-compose.jenkins.yml"
-//             sh "docker network create hal-scrape-${env.TAG_NAME}-build-${currentBuild.number}_default"
-//             sh 'docker-compose -f docker-compose.jenkins.yml build --no-cache && docker-compose -f docker-compose.jenkins.yml up -d'
-//         } catch (err) {
-//             sh 'docker-compose -f docker-compose.jenkins.yml down -v'
-//             sh "docker network rm hal-scrape-${env.TAG_NAME}-build-${currentBuild.number}_default"
-//             sh "sudo rm -rf *"
-//             sh "sudo rm -rf .git .gitignore"
-//             sh "docker system prune -f"
-//             throw err
-//         }
-//     }
-//     stage ('Docker Cleanup') {
-//         sh 'docker-compose -f docker-compose.jenkins.yml down -v'
-//         sh "docker network rm hal-sources-${env.TAG_NAME}-build-${currentBuild.number}_default"
-//         sh "sudo rm -rf *"
-//         sh "sudo rm -rf .git .gitignore"
-//         sh "docker system prune -f"
-//     }
+    stage ('Building Environment') {
+        try {
+            checkout scm
+            sh "sed -i \"s/#{TAG_NAME}#/${env.TAG_NAME}/\" docker-compose.jenkins.yml"
+            sh "sed -i \"s/#{BUILD_NAME}#/${currentBuild.number}/\" docker-compose.jenkins.yml"
+            sh "docker network create hal-health-check-${env.TAG_NAME}-build-${currentBuild.number}"
+            sh 'docker-compose -f docker-compose.jenkins.yml build --no-cache && docker-compose -f docker-compose.jenkins.yml up -d'
+        } catch (err) {
+            sh 'docker-compose -f docker-compose.jenkins.yml down -v'
+            sh "docker network rm hal-scrape-${env.TAG_NAME}-build-${currentBuild.number}"
+            sh "sudo rm -rf *"
+            sh "sudo rm -rf .git .gitignore"
+            sh "docker system prune -f"
+            throw err
+        }
+    }
+    stage ('Docker Cleanup') {
+        sh 'docker-compose -f docker-compose.jenkins.yml down -v'
+        sh "docker network rm hal-health-check-${env.TAG_NAME}-build-${currentBuild.number}"
+        sh "sudo rm -rf *"
+        sh "sudo rm -rf .git .gitignore"
+        sh "docker system prune -f"
+    }
     stage ('Building & Push Docker Image') {
         checkout scm
         def tag = sh(returnStdout: true, script: "git tag --contains | head -1").trim()

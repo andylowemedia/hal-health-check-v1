@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      dockerfile: "Dockerfile"
+      context: "app/"
+      target: "development"
+  rabbitmq:
+    image: "rabbitmq:4.1.4-management-alpine"
+  test-site:
+    image: "nginx:latest"
+networks:
+  default:
+    external:
+      name: "hal-health-check-#{TAG_NAME}#-build-#{BUILD_NAME}#"

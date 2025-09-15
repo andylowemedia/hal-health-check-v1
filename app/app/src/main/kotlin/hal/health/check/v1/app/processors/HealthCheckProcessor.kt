@@ -3,21 +3,17 @@ package hal.health.check.v1.app.processors
 import com.rabbitmq.client.*
 import hal.health.check.v1.app.config.EventConfig
 import hal.health.check.v1.app.config.QueueConfig
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.http4k.client.JavaHttpClient
-import org.http4k.client.JavaHttpClient.invoke
 import org.http4k.core.Request
 import org.http4k.core.Method
 import org.http4k.core.Status
 import org.http4k.core.HttpHandler
-import org.http4k.core.Response
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -51,9 +47,9 @@ class HealthCheckProcessor {
                 success = false
             }
         }
-
+        println("Success: $success")
         val messagePayload = Json.encodeToString(HealthCheckResponsePayload(responseList))
-
+        println(messagePayload)
         val headers: MutableMap<String, Any> = HashMap()
         headers["eventType"] = if (success) { EventConfig.healthCheck.success } else { EventConfig.healthCheck.error }
         val headerString = AMQP.BasicProperties.Builder()
@@ -73,12 +69,13 @@ class HealthCheckProcessor {
                     .header("Content-Type", "application/json")
                 val response = requestClient(request)
                 val responseDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-                val status = response.status
+                val status = response.status.code.toString()
                 val responseData = HealthCheckResultPayload(
                     url,
-                    status.toString(),
+                    status.toString().replace(" ", ""),
                     responseDate
                 )
+                println("Checking ${url}")
                 responseList.add(responseData)
             }
         }

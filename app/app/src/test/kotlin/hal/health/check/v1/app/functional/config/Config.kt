@@ -1,4 +1,4 @@
-package hal.health.check.v1.app.config
+package hal.health.check.v1.app.functional.config
 
 import io.github.cdimascio.dotenv.dotenv
 
@@ -20,16 +20,6 @@ object QueueConfig {
     val queuePass: String = dotenv["RABBITMQ_PASSWORD"] ?: "guest"
     val queueSsl: Boolean = (rabbitMqSsl.lowercase() == "true")
     val readingQueue: String = dotenv["RABBITMQ_QUEUE"] ?: "hal-health-check"
-    val redirectQueue: String = dotenv["RABBITMQ_REDIRECT_QUEUE"] ?: "hal-health-check-redirect-queue"
     val publishExchange: String = dotenv["RABBITMQ_EXCHANGE"] ?: "hal-health-check-redirect"
-}
-
-object EventConfig {
-    val healthCheck = HealthCheck
-}
-
-object HealthCheck {
-    val started = "health-check:started"
-    val success = "health-check:success"
-    val error = "health-check:error"
+    val redirectQueue: String = dotenv["RABBITMQ_REDIRECT_QUEUE"] ?: "hal-health-check-redirect-queue"
 }
