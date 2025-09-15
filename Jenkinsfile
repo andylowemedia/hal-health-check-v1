@@ -6,9 +6,9 @@ node {
             sh "sed -i \"s/#{TAG_NAME}#/${env.TAG_NAME}/\" docker-compose.jenkins.yml"
             sh "sed -i \"s/#{BUILD_NAME}#/${currentBuild.number}/\" docker-compose.jenkins.yml"
             sh "docker network create hal-health-check-${env.TAG_NAME}-build-${currentBuild.number}"
-            sh 'docker-compose -f docker-compose.jenkins.yml build --no-cache && docker-compose -f docker-compose.jenkins.yml up -d'
+            sh 'docker compose -f docker-compose.jenkins.yml build --no-cache && docker compose -f docker-compose.jenkins.yml up -d'
         } catch (err) {
-            sh 'docker-compose -f docker-compose.jenkins.yml down -v'
+            sh 'docker compose -f docker-compose.jenkins.yml down -v'
             sh "docker network rm hal-scrape-${env.TAG_NAME}-build-${currentBuild.number}"
             sh "sudo rm -rf *"
             sh "sudo rm -rf .git .gitignore"
@@ -17,7 +17,7 @@ node {
         }
     }
     stage ('Docker Cleanup') {
-        sh 'docker-compose -f docker-compose.jenkins.yml down -v'
+        sh 'docker compose -f docker-compose.jenkins.yml down -v'
         sh "docker network rm hal-health-check-${env.TAG_NAME}-build-${currentBuild.number}"
         sh "sudo rm -rf *"
         sh "sudo rm -rf .git .gitignore"
