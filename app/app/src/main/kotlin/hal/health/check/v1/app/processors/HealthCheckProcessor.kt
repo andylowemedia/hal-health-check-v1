@@ -43,7 +43,7 @@ class HealthCheckProcessor {
 
         var success = true
         for (payload in responseList) {
-            if (payload.status != Status.OK.toString()) {
+            if (payload.status != Status.OK.code.toString()) {
                 success = false
             }
         }
@@ -72,7 +72,7 @@ class HealthCheckProcessor {
                 val status = response.status.code.toString()
                 val responseData = HealthCheckResultPayload(
                     url,
-                    status.toString().replace(" ", ""),
+                    status,
                     responseDate
                 )
                 println("Checking ${url}")
