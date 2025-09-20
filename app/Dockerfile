@@ -21,4 +21,4 @@ RUN apk add openjdk21-jre tzdata && cp /usr/share/zoneinfo/Europe/London /etc/lo
     apk del tzdata && \
     unzip /app.zip -d / && rm /app.zip
 
-ENTRYPOINT [ "tail", "-f", "/dev/null" ]
+ENTRYPOINT [ "/app/bin/app" ]

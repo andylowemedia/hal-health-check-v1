@@ -3,6 +3,9 @@ package hal.health.check.v1.app.queue
 import com.rabbitmq.client.*
 import com.rabbitmq.client.impl.DefaultExceptionHandler
 import hal.health.check.v1.app.processors.HealthCheckProcessor
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 
 val exceptionHandler: ExceptionHandler = object : DefaultExceptionHandler() {
@@ -59,13 +62,13 @@ class RabbitMqQueue (
         return DeliverCallback { _: String?, delivery: Delivery ->
             val message = String(delivery.body, java.nio.charset.StandardCharsets.UTF_8)
             val headers: Map<String, Any> = delivery.properties.headers as Map<String, Any>
-            val startedDate = java.time.LocalDateTime.now().toString()
+            val startedDate =  OffsetDateTime.of(LocalDateTime.now(), ZoneOffset.UTC)
             println("************************************************")
-            println("Event: ${headers.get("eventType")}")
+            println("Event: ${headers.get("event")}")
             println("${startedDate} [x] Received")
-            processor.process(channel, message)
+            processor.process(channel, message, headers)
             channel.basicAck(delivery.envelope.deliveryTag, false)
-            val endedDate = java.time.LocalDateTime.now().toString()
+            val endedDate =  OffsetDateTime.of(LocalDateTime.now(), ZoneOffset.UTC)
             println("${endedDate} [x] Processed")
             println("************************************************")
             println("")

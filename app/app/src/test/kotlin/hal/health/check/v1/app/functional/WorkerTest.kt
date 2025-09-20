@@ -15,6 +15,7 @@ import hal.health.check.v1.app.functional.config.QueueConfig
 import hal.health.check.v1.app.processors.HealthCheckProcessor
 import hal.health.check.v1.app.processors.HealthCheckRequestPayload
 import hal.health.check.v1.app.processors.HealthCheckResponsePayload
+import hal.health.check.v1.app.processors.HealthCheckUrlRow
 import hal.health.check.v1.app.queue.exceptionHandler
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -22,6 +23,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.BeforeTest
@@ -58,14 +63,17 @@ class WorkerTest {
 
         val payload = HealthCheckRequestPayload(
             urls = listOf(
-                "http://test-site",
+                HealthCheckUrlRow("http://test-site", false)
             )
         )
 
         val messagePayload = Json.encodeToString(payload)
 
         val headers: MutableMap<String, Any> = HashMap()
-        headers["eventType"] = EventConfigProd.healthCheck.started
+        headers["event"] = EventConfigProd.healthCheck.started
+        headers["date"] = OffsetDateTime.of(LocalDateTime.now(), ZoneOffset.UTC).toString()
+        headers["trace-id"] = UUID.randomUUID().toString()
+        println("Trace ID: ${headers["trace-id"]}")
         val headerString = AMQP.BasicProperties.Builder()
             .headers(headers)
             .build()
@@ -78,6 +86,15 @@ class WorkerTest {
         println("message processed ${QueueConfig.redirectQueue}")
         val delivery = this.channel!!.basicGet(QueueConfig.redirectQueue, true)
         val message = String(delivery.body, java.nio.charset.StandardCharsets.UTF_8)
+
+        val messageHeaders: Map<String, Any> = delivery.props.headers as Map<String, Any>
+        println(messageHeaders.entries)
+        assertTrue(messageHeaders.containsKey("event"))
+        assertEquals(EventConfigProd.healthCheck.success, messageHeaders.get("event").toString())
+        assertTrue(messageHeaders.containsKey("date"))
+        assertTrue(messageHeaders.containsKey("trace-id"))
+        assertEquals(headers.get("trace-id").toString(), messageHeaders.get("trace-id").toString())
+
         println("Synchronous check: ${message}")
         val responsePayload: HealthCheckResponsePayload = Json.decodeFromString(message)
         assertEquals(1,responsePayload.responses.size)
@@ -99,14 +116,16 @@ class WorkerTest {
 
         val payload = HealthCheckRequestPayload(
             urls = listOf(
-                "http://test-site1",
+                HealthCheckUrlRow("http://test-site1", false),
             )
         )
 
         val messagePayload = Json.encodeToString(payload)
 
         val headers: MutableMap<String, Any> = HashMap()
-        headers["eventType"] = EventConfigProd.healthCheck.started
+        headers["event"] = EventConfigProd.healthCheck.started
+        headers["date"] = OffsetDateTime.of(LocalDateTime.now(), ZoneOffset.UTC).toString()
+        headers["trace-id"] = UUID.randomUUID().toString()
         val headerString = AMQP.BasicProperties.Builder()
             .headers(headers)
             .build()
@@ -119,7 +138,15 @@ class WorkerTest {
         println("message processed ${QueueConfig.redirectQueue}")
         val delivery = this.channel!!.basicGet(QueueConfig.redirectQueue, true)
         val message = String(delivery.body, java.nio.charset.StandardCharsets.UTF_8)
-        println("Synchronous check: ${message}")
+
+        val messageHeaders: Map<String, Any> = delivery.props.headers as Map<String, Any>
+        println("Synchronous check: ${message} headers processed ${messageHeaders}")
+        assertTrue(messageHeaders.containsKey("event"))
+        assertEquals(EventConfigProd.healthCheck.error, messageHeaders.get("event").toString())
+        assertTrue(messageHeaders.containsKey("date"))
+        assertTrue(messageHeaders.containsKey("trace-id"))
+        assertEquals(headers.get("trace-id").toString(), messageHeaders.get("trace-id").toString())
+
         val responsePayload: HealthCheckResponsePayload = Json.decodeFromString(message)
         assertEquals(1,responsePayload.responses.size)
         for (response in responsePayload.responses) {
@@ -168,13 +195,13 @@ class WorkerTest {
         @AfterAll
         fun teardown() {
             println("destroy queues and exchanges")
-            val channel = buildChannel()
-            channel.queueDelete(QueueConfig.redirectQueue)
-            println("Queue '${QueueConfig.redirectQueue}' deleted.")
-
-            // 2. Delete the exchange
-            channel.exchangeDelete(QueueConfig.publishExchange)
-            println("Exchange '${QueueConfig.publishExchange}' deleted.")
+//            val channel = buildChannel()
+//            channel.queueDelete(QueueConfig.redirectQueue)
+//            println("Queue '${QueueConfig.redirectQueue}' deleted.")
+//
+//            // 2. Delete the exchange
+//            channel.exchangeDelete(QueueConfig.publishExchange)
+//            println("Exchange '${QueueConfig.publishExchange}' deleted.")
         }
     }
 }

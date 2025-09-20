@@ -10,6 +10,12 @@ repositories {
 }
 
 dependencies {
+    // AWS SDK Kotlin
+    implementation("software.amazon.awssdk:route53:2.27.11")
+    implementation("software.amazon.awssdk:core:2.27.11")
+    implementation("software.amazon.awssdk:auth:2.27.11")
+
+    // Cucumber
     testImplementation("io.cucumber:cucumber-java:7.15.0")
     testImplementation("io.cucumber:cucumber-java8:7.15.0")
     testImplementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
